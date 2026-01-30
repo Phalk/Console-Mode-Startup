@@ -39,7 +39,7 @@ This Python script uses PyQt5 to automatically launch applications based on the 
 ## Converting to Executable
 To convert the script to a single executable file (`.exe`) without a console window, use PyInstaller with the following command:
 ```bash
-pyinstaller --noconsole --onefile startup_mode.py
+pyinstaller --noconsole --onedir startup_mode.py
 ```
 - `--noconsole`: Prevents the console window from appearing when running the .exe.
 - `--onefile`: Packages the script and its dependencies into a single executable file.
