@@ -3,8 +3,10 @@ import sys
 import os
 import configparser
 import time
-from PyQt5.QtWidgets import QApplication, QWidget
+import shlex
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont
 
 # Função para obter o diretório do executável
 def get_exe_dir():
@@ -16,8 +18,11 @@ def get_exe_dir():
 # Configurar log de depuração
 log_file = os.path.join(get_exe_dir(), 'startup_mode_log.txt')
 def log_message(message):
-    with open(log_file, 'a') as f:
-        f.write(f"{time.ctime()}: {message}\n")
+    try:
+        with open(log_file, 'a') as f:
+            f.write(f"{time.ctime()}: {message}\n")
+    except:
+        pass
 
 # Função para obter a resolução da tela atual
 def get_current_screen_resolution(window):
@@ -25,77 +30,147 @@ def get_current_screen_resolution(window):
     screen = app.screenAt(window.pos())
     if screen:
         resolution = f"{screen.geometry().width()}x{screen.geometry().height()}"
-        log_message(f"Janela está na tela com resolução: {resolution}")
+        log_message(f"Janela detectada na resolução: {resolution}")
         return resolution
-    else:
-        log_message("Nenhuma tela detectada para a posição da janela")
-        return None
+    return None
 
-# Obter diretórios
+# Classe para a splash screen
+class SplashScreen(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
+        self.setStyleSheet("background-color: black;")
+        
+        self.label = QLabel("NOW LOADING...", self)
+        self.label.setStyleSheet("color: #FFFFFF; background-color: transparent;")
+        self.label.setFont(QFont("Arial", 48))
+        self.label.setAlignment(Qt.AlignCenter)
+        
+        self.percent_label = QLabel("0%", self)
+        self.percent_label.setStyleSheet("color: #FFFFFF; background-color: transparent;")
+        self.percent_label.setFont(QFont("Century Gothic", 24))
+        self.percent_label.setAlignment(Qt.AlignCenter)
+        
+        layout = QVBoxLayout()
+        layout.addWidget(self.label)
+        layout.addWidget(self.percent_label)
+        layout.setAlignment(Qt.AlignCenter)
+        self.setLayout(layout)
+
+    def show(self):
+        super().show()
+        # Ajusta para o tamanho total da tela primária
+        screen = QApplication.instance().primaryScreen()
+        self.setGeometry(screen.geometry())
+        QApplication.instance().processEvents()
+        log_message("Splash screen exibida com sucesso.")
+
+    def update_percent(self, percent):
+        self.percent_label.setText(f"{int(percent)}%")
+        QApplication.instance().processEvents()
+
+# --- INÍCIO DO SCRIPT ---
+
+app = QApplication(sys.argv)
 script_dir = get_exe_dir()
 config_path = os.path.join(script_dir, 'config.ini')
-current_dir = os.getcwd()
 
-# Logar informações de depuração
-log_message(f"Diretório do executável: {script_dir}")
-log_message(f"Caminho do config.ini: {config_path}")
-log_message(f"Diretório de trabalho atual: {current_dir}")
+log_message(f"Iniciando processo. Diretório: {script_dir}")
 
-# Criar aplicação PyQt5
-app = QApplication(sys.argv)
+# Detectar resolução usando uma janela invisível rápida
+temp_win = QWidget()
+temp_win.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
+temp_win.setAttribute(Qt.WA_NoSystemBackground)
+temp_win.show()
+resolution = get_current_screen_resolution(temp_win)
+temp_win.close()
 
-# Criar janela temporária para detectar a tela
-window = QWidget()
-window.setWindowFlags(Qt.WindowStaysOnTopHint)
-window.show()
-
-# Obter a resolução da tela atual após exibir a janela
-resolution = get_current_screen_resolution(window)
 if not resolution:
-    error_msg = "Erro: Não foi possível detectar a resolução da tela atual!"
-    print(error_msg)
-    log_message(error_msg)
+    log_message("Erro: Não foi possível detectar a resolução.")
     sys.exit(1)
 
-# Carregar configurações do arquivo config.ini
+# Carregar Configurações
 config = configparser.ConfigParser()
-try:
-    if not config.read(config_path):
-        error_msg = f"Erro: {config_path} não encontrado ou inválido!"
-        print(error_msg)
-        log_message(error_msg)
-        sys.exit(1)
-    
-    # Obter aplicativos para a resolução detectada ou seção [other]
-    apps = []
-    section = resolution if resolution in config else 'other'
-    if section in config:
-        # Ordenar chaves como números e obter os aplicativos
-        app_keys = sorted(config[section].keys(), key=int)
-        apps = [config[section][key] for key in app_keys if config[section].get(key)]
-    
-    log_message(f"Aplicativos para a seção [{section}]: {apps}")
-
-    if not apps:
-        error_msg = f"Erro: Nenhuma aplicação válida encontrada para a seção [{section}]!"
-        print(error_msg)
-        log_message(error_msg)
-        sys.exit(1)
-
-except Exception as e:
-    error_msg = f"Erro ao ler {config_path}: {str(e)}"
-    print(error_msg)
-    log_message(error_msg)
+if not config.read(config_path):
+    log_message(f"Erro: Arquivo {config_path} não encontrado.")
     sys.exit(1)
 
-# Fechar a janela
-window.close()
+section = resolution if resolution in config else 'other'
+apps_to_launch = []
 
-# Executar aplicativos
-log_message(f"Iniciando aplicativos na seção [{section}]")
-for app in apps:
-    log_message(f"Executando app: {app}")
-    subprocess.Popen(app, shell=True)  # Usa Popen para não esperar
+if section in config:
+    app_keys = sorted([k for k in config[section].keys() if k.isdigit()], key=int)
+    for k in app_keys:
+        val = config[section].get(k)
+        if val:
+            apps_to_launch.append(val)
 
-# Encerrar o script
-os._exit(0)
+if not apps_to_launch:
+    log_message("Nenhum aplicativo para lançar.")
+    sys.exit(0)
+
+# Calcular tempo total para decidir se mostra a Splash
+total_wait_time = 0
+for entry in apps_to_launch:
+    if ',wait=' in entry:
+        try:
+            total_wait_time += float(entry.split(',wait=')[1])
+        except ValueError:
+            pass
+
+# Instanciar Splash somente se houver tempo de espera
+splash = None
+if total_wait_time > 0:
+    splash = SplashScreen()
+    splash.show()
+
+# Execução dos Aplicativos
+elapsed_time = 0
+for app_entry in apps_to_launch:
+    # Parsing de tempo e comando
+    if ',wait=' in app_entry:
+        cmd_part, wait_val = app_entry.split(',wait=')
+        try:
+            wait_seconds = float(wait_val)
+        except:
+            wait_seconds = 0
+    else:
+        cmd_part = app_entry
+        wait_seconds = 0
+
+    # Parsing de argumentos
+    try:
+        parts = shlex.split(cmd_part)
+        exe = parts[0]
+        args = parts[1:]
+    except:
+        exe = cmd_part
+        args = []
+
+    # Lançar App
+    log_message(f"Lançando: {exe}")
+    try:
+        subprocess.Popen([exe] + args, shell=False)
+    except Exception as e:
+        log_message(f"Falha ao abrir {exe}: {e}")
+
+    # Espera com atualização de progresso
+    if wait_seconds > 0:
+        steps = int(wait_seconds * 10) # 10 atualizações por segundo para fluidez
+        for _ in range(steps):
+            time.sleep(0.1)
+            elapsed_time += 0.1
+            if splash:
+                percent = min((elapsed_time / total_wait_time) * 100, 100)
+                splash.update_percent(percent)
+            app.processEvents()
+
+# Finalização Limpa
+if splash:
+    splash.close()
+
+log_message("Processo concluído. Encerrando de forma limpa.")
+
+# Correção: Usar sys.exit para permitir que o PyInstaller limpe a pasta _MEI
+app.quit()
+sys.exit(0)
