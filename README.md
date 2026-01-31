@@ -4,10 +4,8 @@ This Python script uses PyQt5 to automatically launch applications based on the 
 
 ## Features
 - **Resolution-Based Launching**: Automatically detects screen resolution and runs specific apps from `config.ini`.
-- **Dynamic Splash Screen**: Only appears if wait times (`wait=X`) are configured.
 - **Visual Customization**: Define background color (`bgcolor`), text color (`textcolor`), and loading text per resolution.
 - **Animation Modes**: Sync a GIF frame-by-frame with progress or run it in an infinite loop using the `,loop` flag.
-- **Graceful Shutdown**: Fixed the "Failed to load Python DLL" error by ensuring a clean exit, allowing PyInstaller to manage temporary files correctly.
 
 ## Prerequisites
 - Python 3.10 or higher
