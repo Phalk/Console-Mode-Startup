@@ -50,7 +50,7 @@ pyinstaller --noconsole --onedir start.py
 
 ```
 
-**Note**: After building, manually copy your `config.ini` and animation files (GIFs) into the generated `dist/startup_mode/` folder.
+**Note**: After building, manually copy your `config.ini` and animation files (GIFs) into the generated executable folder.
 
 ## Replacing the Windows Shell
 
