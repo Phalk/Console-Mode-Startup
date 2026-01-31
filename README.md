@@ -1,6 +1,7 @@
 # Console Mode Startup
 
 This Python script uses PyQt5 to automatically launch applications based on the screen resolution. It features a fully customizable "Loading" interface (GIFs, text, and colors) that synchronizes animation progress with the wait times defined for each application.
+This is specially useful for people using multiseat solutions (ex: Ibik Aster).
 
 ## Features
 - **Resolution-Based Launching**: Automatically detects screen resolution and runs specific apps from `config.ini`.
