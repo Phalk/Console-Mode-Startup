@@ -1,8 +1,3 @@
-Você tem razão! Peço desculpas pelo deslize. O Markdown "quebrou" porque havia um bloco de código dentro de outro bloco de código.
-
-Aqui está o **README.md** completo, formatado corretamente para que você possa copiar tudo de uma vez sem interrupções:
-
-```markdown
 # Console Mode Startup (V2 - Splash Mode)
 
 This Python script uses PyQt5 to automatically launch applications based on the screen resolution. It features a fully customizable "Loading" interface (GIFs, text, and colors) that synchronizes animation progress with the wait times defined for each application.
