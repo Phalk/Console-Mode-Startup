@@ -23,18 +23,19 @@ bgcolor = #000000
 textcolor = #ffffff
 loading_text = INITIALIZING SYSTEM...
 show_percentage = 1
-; Use ",loop" for infinite animation, or just the filename to sync with progress
-animation = loading.gif,loop
+; Animation path (Quotes recommended if there are spaces)
+animation = "loading.gif",loop
 
 ; Applications (Numeric keys = execution order)
-1 = C:\Path\To\Game.exe,wait=5
-2 = explorer.exe,wait=2
+; Always use quotes for paths with spaces!
+1 = "C:\Program Files\My App\game.exe",wait=5
+2 = "explorer.exe",wait=2
 
 [default]
 bgcolor = #1a1a1a
 textcolor = #00ff00
 loading_text = LOADING DEFAULT PROFILE...
-animation = sync_anim.gif
+animation = "sync_anim.gif"
 show_percentage = 1
 1 = notepad.exe,wait=3
 
