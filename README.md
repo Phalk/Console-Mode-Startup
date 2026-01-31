@@ -1,4 +1,4 @@
-# Console Mode Startup (V2 - Splash Mode)
+# Console Mode Startup
 
 This Python script uses PyQt5 to automatically launch applications based on the screen resolution. It features a fully customizable "Loading" interface (GIFs, text, and colors) that synchronizes animation progress with the wait times defined for each application.
 
@@ -46,7 +46,7 @@ show_percentage = 1
 To generate the executable in a folder format (keeping `config.ini` and assets external for easy editing), use:
 
 ```bash
-pyinstaller --noconsole --onedir startup_mode.py
+pyinstaller --noconsole --onedir start.py
 
 ```
 
