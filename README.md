@@ -54,25 +54,7 @@ pyinstaller --noconsole --onedir start.py
 
 ## Replacing the Windows Shell
 
-To replace the default Windows shell (explorer.exe) with this script for a specific user, follow these steps to safely modify the registry:
-
-1. Log in to a Windows user account with **administrative privileges** (different from the target user).
-2. Open `regedit.exe`.
-3. Go to the **File** menu and select **Load Hive**.
-4. Navigate to the target user's profile directory (e.g., `C:\Users\TargetUser\`).
-5. Select the `ntuser.dat` file (you may need to enable "Hidden Files") and load it, giving it a temporary name (e.g., `TempHive`).
-6. Navigate to the following path:
-`HKEY_USERS\TempHive\Software\Microsoft\Windows NT\CurrentVersion\Winlogon`
-7. Create a new **String Value** named `Shell`.
-8. Set its value to the full path of your generated `.exe` (e.g., `C:\CustomShell\startup_mode.exe`).
-9. Go back to the `TempHive` folder in the left sidebar, click the **File** menu, and select **Unload Hive** to save changes.
-10. Log out and log back in as the target user to apply the new shell.
-
-## Troubleshooting
-
-* **Failed to load Python DLL**: Ensure you are using the `sys.exit()` method (included in the script) and that your antivirus isn't interfering with the `%TEMP%` folder.
-* **GIF Not Playing**: Verify if the filename in `config.ini` matches the file in the folder exactly.
-* **Logs**: Detailed execution info and detected resolutions are saved to `startup_mode_log.txt`.
+1. Use the tool provided to change your windows shell (start config.exe)
 
 ## License
 
