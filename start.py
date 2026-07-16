@@ -3,10 +3,11 @@ import sys
 import os
 import configparser
 import time
-import shlex
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QPixmap, QImageReader, QMovie
+
+
 
 def get_exe_dir():
     if getattr(sys, 'frozen', False):
@@ -14,10 +15,13 @@ def get_exe_dir():
     else:
         return os.path.dirname(os.path.abspath(__file__))
 
+DEBUG_MODE = "--debug" in sys.argv
 log_file = os.path.join(get_exe_dir(), 'startup_mode_log.txt')
 def log_message(message):
+    if not DEBUG_MODE:
+        return
     try:
-        with open(log_file, 'a') as f:
+        with open(log_file, 'a', encoding='utf-8') as f:
             f.write(f"{time.ctime()}: {message}\n")
     except:
         pass
@@ -94,7 +98,8 @@ class SplashScreen(QWidget):
             
         QApplication.instance().processEvents()
 
-# --- LÓGICA DE INICIALIZAÇÃO ---
+
+# --- STARTUP EXECUTION LOGIC ---
 app = QApplication(sys.argv)
 script_dir = get_exe_dir()
 config_path = os.path.join(script_dir, 'config.ini')
@@ -106,10 +111,10 @@ resolution = get_current_screen_resolution(temp_win)
 temp_win.close()
 
 config = configparser.ConfigParser()
-config.read(config_path)
+config.read(config_path, encoding='utf-8')
 
 section = resolution if resolution in config else 'default'
-apps_to_launch = []
+app_sections_to_launch = []
 anim_path_ini = None
 use_loop_ini = False
 loading_text_ini = ""
@@ -123,7 +128,6 @@ if section in config:
 
     anim_entry = config[section].get('animation', fallback="")
     if anim_entry:
-        # Padronização: Remove aspas se o usuário as colocou no INI para o path do GIF
         clean_entry = anim_entry.replace('"', '').replace("'", "")
         if ',loop' in clean_entry:
             anim_path_ini = clean_entry.split(',loop')[0].strip()
@@ -137,14 +141,24 @@ if section in config:
 
     loading_text_ini = config[section].get('loading_text', fallback="")
     show_flag = config[section].getint('show_percentage', fallback=1)
-    show_percentage_ini = True if show_flag == 1 else False
+    show_percentage_ini = (show_flag == 1)
 
+    # Fetch sequence keys (1, 2, 3...)
     app_keys = sorted([k for k in config[section].keys() if k.isdigit()], key=int)
     for k in app_keys:
         val = config[section].get(k)
-        if val: apps_to_launch.append(val)
+        if val: 
+            app_sections_to_launch.append(val.strip())
 
-total_wait_time = sum(float(e.split(',wait=')[1]) for e in apps_to_launch if ',wait=' in e)
+# Sum up total wait time
+total_wait_time = 0
+for app_name in app_sections_to_launch:
+    if app_name in config:
+        try:
+            wait_val = float(config[app_name].get('wait', fallback=0))
+            total_wait_time += wait_val
+        except ValueError:
+            pass
 
 splash = None
 if total_wait_time > 0:
@@ -152,22 +166,53 @@ if total_wait_time > 0:
     splash.show()
 
 elapsed_time = 0
-for app_entry in apps_to_launch:
-    # shlex.split lida corretamente com aspas no comando do executável
-    if ',wait=' in app_entry:
-        cmd_part, wait_val = app_entry.rsplit(',wait=', 1)
-        try: wait_seconds = float(wait_val)
-        except: wait_seconds = 0
-    else:
-        cmd_part = app_entry
+for app_name in app_sections_to_launch:
+    if app_name not in config:
+        log_message(f"Section [{app_name}] declared in sequence, but not defined in config.ini.")
+        continue
+
+    # Clean up quotes from paths
+    raw_path = config[app_name].get('path', fallback="").strip('"').strip("'")
+    raw_runat = config[app_name].get('runat', fallback="").strip('"').strip("'")
+    
+    try:
+        wait_seconds = float(config[app_name].get('wait', fallback=0))
+    except ValueError:
         wait_seconds = 0
 
-    try:
-        parts = shlex.split(cmd_part)
-        subprocess.Popen(parts, shell=False)
-    except Exception as e:
-        log_message(f"Erro ao abrir {cmd_part}: {e}")
+    if not raw_path:
+        log_message(f"Section [{app_name}] does not contain a valid 'path'.")
+        continue
 
+    # Determine working directory (cwd)
+    cwd_dir = None
+    if raw_runat:
+        cwd_dir = raw_runat
+    else:
+        path_dir = os.path.dirname(raw_path)
+        if path_dir and os.path.exists(path_dir):
+            cwd_dir = path_dir
+        else:
+            cwd_dir = script_dir
+
+    # Launch process with Fallback Strategy
+    success = False
+    try:
+        # First attempt: Direct execution
+        subprocess.Popen(raw_path, shell=False, cwd=cwd_dir)
+        success = True
+        log_message(f"Successfully launched [{app_name}] directly: {raw_path}")
+    except Exception as e1:
+        log_message(f"Direct launch failed for [{app_name}]: {e1}. Retrying with System Shell...")
+        try:
+            # Second attempt: System Shell execution (Fallback essential for console hosts like Sunshine)
+            subprocess.Popen(raw_path, shell=True, cwd=cwd_dir)
+            success = True
+            log_message(f"Successfully launched [{app_name}] via System Shell: {raw_path}")
+        except Exception as e2:
+            log_message(f"CRITICAL: All launch attempts failed for [{app_name}]. Error: {e2}")
+
+    # Wait-time progress tracking
     if wait_seconds > 0:
         steps = int(wait_seconds * 20)
         for _ in range(steps):
@@ -179,6 +224,7 @@ for app_entry in apps_to_launch:
             app.processEvents()
 
 time.sleep(1) 
-if splash: splash.close()
+if splash: 
+    splash.close()
 app.quit()
 sys.exit(0)

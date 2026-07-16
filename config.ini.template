@@ -1,0 +1,54 @@
+# ==============================================================================
+# MULTI-RESOLUTION STARTUP CONFIGURATION (Template)
+# Rename this file to 'config.ini' and adjust the paths to suit your needs.
+# ==============================================================================
+
+[default]
+# Default startup sequence (sequential numerical IDs)
+1 = example_app_1
+2 = example_app_2
+
+[1920x1080]
+# Custom visual configuration for a specific screen resolution
+bgcolor = #0F0F11
+textcolor = #00FFCC
+loading_text = "Starting Full HD Workspace..."
+show_percentage = 1
+animation = "assets/loading_1080p.gif,loop"
+
+# Custom startup sequence for this resolution
+1 = example_app_1
+2 = example_app_3
+
+[3840x2160]
+bgcolor = #120A18
+textcolor = #FF007F
+loading_text = "Loading 4K TV Mode..."
+show_percentage = 1
+animation = "assets/loading_4k.gif,loop"
+
+1 = example_app_1
+2 = example_app_2
+3 = example_app_3
+
+
+# ==============================================================================
+# APPLICATION DECLARATIONS
+# Define the physical parameters of each application referenced above.
+# ==============================================================================
+
+[example_app_1]
+# Absolute path or global command (can include arguments/parameters)
+path = "notepad.exe"
+# Optional wait time in seconds before launching the next item
+wait = 2
+
+[example_app_2]
+path = "C:\Program Files\MyApp\system.exe --silent"
+# Optional working directory. If omitted, it defaults to the executable's folder.
+runat = "C:\Program Files\MyApp"
+wait = 5
+
+[example_app_3]
+# Example using Windows environment variables (resolved automatically by OS)
+path = "%LocalAppData%\Programs\Example\Launcher.exe"
