@@ -58,3 +58,28 @@ show_percentage = 1
 [Notepad]
 path = notepad.exe
 wait = 3
+```
+
+# Debug and Logging
+By default, the script runs silently and does not write any logs. If you need to troubleshoot paths or execution issues, you can enable logging by passing the --debug parameter at startup:
+
+* Running via Python: 
+python start.py --debug
+
+* Running the compiled Executable: 
+start.exe --debug
+
+When active, it will generate a startup_mode_log.txt file in the application directory containing detailed step-by-step launch events.
+
+# Converting to Executable
+To generate the executable in a folder format (keeping config.ini and assets external for easy editing), run:
+
+* pyinstaller --noconsole --onedir start.py
+
+Note: After building, manually copy your config.ini and animation files (GIFs) into the generated dist/start executable folder.
+
+# Replacing the Windows Shell
+Use the tool provided to change your Windows shell (start.config).
+
+# License
+This project is licensed under the MIT License.
