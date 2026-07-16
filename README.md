@@ -1,5 +1,7 @@
 # Console Mode Startup
 
+Turns any Windows PC into a game-console-like experience: boots straight into your apps/games — no desktop, no explorer, just "power on and play".
+
 This Python script uses PyQt5 to automatically launch applications based on the screen resolution. It features a fully customizable "Loading" interface (GIFs, text, and colors) that synchronizes animation progress with the wait times defined for each application.
 
 This is especially useful for people with multiseat solutions (ex: Ibik Aster) or custom arcade/HTPC setups.
