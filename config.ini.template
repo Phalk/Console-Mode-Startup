@@ -14,7 +14,7 @@ bgcolor = #0F0F11
 textcolor = #00FFCC
 loading_text = "Starting Full HD Workspace..."
 show_percentage = 1
-animation = "assets/loading_1080p.gif,loop"
+animation = "assets/loading.gif,loop"
 
 # Custom startup sequence for this resolution
 1 = example_app_1
@@ -25,7 +25,7 @@ bgcolor = #120A18
 textcolor = #FF007F
 loading_text = "Loading 4K TV Mode..."
 show_percentage = 1
-animation = "assets/loading_4k.gif,loop"
+animation = "assets/loading.gif,loop"
 
 1 = example_app_1
 2 = example_app_2
